@@ -1,6 +1,8 @@
 # dino-tic80
 
-<table align="right">
+A TIC-80 game for a monthly game jam with theme "Dinossaurs".
+
+<table>
   <tr>
     <td><a href="https://codeberg.org/diogotito/dino-tic80/projects/38882">Codeberg project</a>
     <td><a href="https://miro.com/app/board/uXjVG_Uo0-g=/">Miro board</a>
@@ -8,7 +10,6 @@
     <td><a href="https://codeberg.org/diogotito/dino-tic80/wiki">Codeberg Wiki</a>
 </table>
 
-A TIC-80 game for a monthly game jam with theme "Dinossaurs".
 
 ## Development
 
@@ -27,6 +28,7 @@ From here on, to edit/run this project after booting TIC-80:
 > TIC-80 **doesn't autosave!!**
 > Don't forget to save often with <kbd>Ctrl</kbd> <kbd>S</kbd>
 > or `> save` on the console.
+
 
 ### Some handy shortcuts
 
