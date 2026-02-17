@@ -1,16 +1,27 @@
 # dino-tic80
 
+<table align="right">
+  <tr>
+    <td><a href="https://codeberg.org/diogotito/dino-tic80/projects/38882">Codeberg project</a>
+    <td><a href="https://miro.com/app/board/uXjVG_Uo0-g=/">Miro board</a>
+  <tr>
+    <td><a href="https://codeberg.org/diogotito/dino-tic80/wiki">Codeberg Wiki</a>
+</table>
+
 A TIC-80 game for a monthly game jam with theme "Dinossaurs".
 
 ## Development
 
-There might be an easier way, but I think you have to:
+To clone this repo for working from TIC-80:
 
-1. Launch TIC-80
-2. `> folder`
-3. `git clone` this repo into whatever folder that opened up
-4. `> cd dino-tic80`
-5. `load dinoscene.lua`
+1. Launch a fresh instance of tic80
+1. From the new console, run `folder`
+1. `git clone` this repo into whatever folder that opened up
+
+From here on, to edit/run this project after booting TIC-80:
+
+1. `cd dino-tic80`
+1. `load dinoscene.lua`
 
 > [!CAUTION]
 > TIC-80 **doesn't autosave!!**
