@@ -121,7 +121,7 @@ end
 function draw_overlay()
 	vbank(1)
 	cls()
-	local m
+	local m,f
 
 	if bar < 12 then goto NoMoreVFX end
 	
@@ -131,8 +131,12 @@ function draw_overlay()
 		vbank(m >= 8 and 1 or 0)
 		m=m*(m<8 and 1 or 2)
 	end
+	f = trib
+	if bar > 16 then
+		f = m<8 and tri or function()end
+	end
 	for i=1,m do
-		trib(math.random(240),
+		f(math.random(240),
 		     math.random(136),
 			 			math.random(240),
 		     math.random(136),
@@ -163,11 +167,11 @@ function BDR(scanline)
 	if bar < 3 then return end
 		
 	-- wavy raster effects
-	local a = math.min(bar-1, 12)/8
-	if bar < 12 then a = a * a end
-	local ox = a * 16 * math.sin(
+	local a = math.min(bar-1, 12)/10
+	if bar < 10 then a = a * a end
+	local ox = a * 10 * math.sin(
 	            0.1 * (scanline + 2*t))
-	local oy = a * 8 * math.cos(
+	local oy = a * 6 * math.cos(
 	            0.07 * (scanline + 2*t))
 	offset_screen(ox, oy)
 
@@ -214,7 +218,7 @@ function TIC()
 	
 	line(42, 32, 55, 26, 0)
 	print(
-		("gwwaaaaaaaaarrgh"):sub(1, 1+music_row()),
+		("gwwaaaaaaaaarrgh"):sub(1, 1+2*music_row()),
 		56, 20, 0)
 	
 	
