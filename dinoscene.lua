@@ -56,18 +56,13 @@ for i = 1,8 do
 end
 
 -- Justify inclusion of a jet pack
-do
-	local function pit(x, d)
-		for cy = 6, 5+d do
-			poke( 0x8000 + cy*0xF0 + x
-			    , DIRT_BASE + 2)
-		end
-		poke(0x8000+(6+d)*0xF0+x,DIRT_BASE+3)
+function pit(x, d)
+	for cy = 6, 5+d do
+		poke( 0x8000 + cy*0xF0 + x
+		    , DIRT_BASE + 2)
 	end
-	pit(18, 0)
-	pit(23, 7) pit(24, 6) pit(25, 7)
+	poke(0x8000+(6+d)*0xF0+x,DIRT_BASE+3)
 end
-
 
 -------------------------------------
 -- GAME STATE                      --
@@ -81,9 +76,9 @@ function update_channels()
 	poke(0x14002, chan[3] and 0xFF or 0)
 	poke(0x14003, chan[4] and 0xFF or 0)
 	
-	if chan[3] and bar < 14 then
+	if chan[3] and bar < 16 then
 		local m = music_row()
-		local l = bar < 8 and 7 or 8
+		local l = bar < 12 and 7 or 8
 		poke(0x14002, m<l and 0xFF or 0)
 	end
 end
@@ -96,9 +91,14 @@ bar, new_bar = 0, true
 
 function _entered_new_bar()
 	if bar == 0 then chan[2] = true end
-	if bar == 2 then chan[3] = true end
-	if bar == 6 then chan[4] = true end
-	if bar ==10 then chan[1] = true end
+	if bar == 4 then chan[3] = true end
+	if bar == 8 then chan[4] = true end
+	if bar ==16 then chan[1] = true end
+	
+	if bar == 1 then 	pit(18, 0) end
+	if bar == 2 then
+		pit(23, 7) pit(24, 6) pit(25, 7)
+	end
 end
 
 function update()
@@ -112,7 +112,7 @@ function update()
 		new_bar = false
 	end
 	
-	if bar < 6 then return end
+	if bar < 8 then return end
 	
 	poke(0x3FF8, music_row())
 end
@@ -123,10 +123,11 @@ function draw_overlay()
 	cls()
 	local m
 
-	if bar < 10 then goto NoMoreVFX end
+	if bar < 12 then goto NoMoreVFX end
 	
+	vbank(0)
 	m=music_row()
-	if bar >= 12 then	
+	if bar >= 16 then	
 		vbank(m >= 8 and 1 or 0)
 		m=m*(m<8 and 1 or 2)
 	end
@@ -159,17 +160,18 @@ end
 -- try to justify the "scene" part
 -- of the cartridge name
 function BDR(scanline)
-	if bar < 1 then return end
+	if bar < 3 then return end
 		
 	-- wavy raster effects
-	local a = math.min(bar-1, 8)/8
-	local ox = a * 10 * math.sin(
+	local a = math.min(bar-1, 12)/8
+	if bar < 12 then a = a * a end
+	local ox = a * 16 * math.sin(
 	            0.1 * (scanline + 2*t))
-	local oy = a * 6 * math.cos(
+	local oy = a * 8 * math.cos(
 	            0.07 * (scanline + 2*t))
 	offset_screen(ox, oy)
 
-	if bar < 6 then return end
+	if bar < 8 then return end
 	
 	-- palette fuckery
 	local col = 1-(t/30)*190
@@ -177,14 +179,14 @@ function BDR(scanline)
 	poke(0x3FDC, col-1.2*scanline+t)
 	poke(0x3FDD, col-2*scanline)
 	
-	if bar < 8 then return end
+	if bar < 12 then return end
 	
 	if music_row() >= 8 then
-		if bar < 10 then return end
+		if bar < 16 then return end
 		ox = ox * (1-(t % 110 / 15))
 		oy = 136-(t%110/35)*scanline-oy
-	elseif bar >= 8 then
-		ox=ox+(2-math.pow(2,(bar-12)%8))*t
+	elseif bar >= 12 then
+		ox=ox+(2-math.pow(2,(bar-14)%8))*t
 	end
 	offset_screen(ox, oy)
 end
@@ -198,16 +200,24 @@ function TIC()
 	
 	vbank(0)
 	
-	-- dirt
 	map()
-	-- the sun
 	circ(230, 0, 20, 4)
+	spr((music_row() % 8 < 4)
+			and 99 or 83, 120, 40, 15)
+
+	if bar < 3 then return end		
+	
 	-- dino
 	spr(48, 20, 24, 0, 1, 0, 0, 3, 3)
+
+	if bar < 4 then return end		
+	
 	line(42, 32, 55, 26, 0)
-	-- dude
-	spr(83, 120, 40, 15)
-	print("gwaaaaaaarrgh", 56, 20, 0)		
+	print(
+		("gwwaaaaaaaaarrgh"):sub(1, 1+music_row()),
+		56, 20, 0)
+	
+	
 	draw_overlay()
 	
 	--------- advance t ----------
@@ -232,7 +242,7 @@ end
 -- 081:6666660066666600666660006666000006600000006000000060000000660000
 -- 083:f35555ff3f3333fff555555fff6060ffff6666fff63222ffff22225ff5ffffff
 -- 084:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
--- 099:0055550000444400055555500066660000166100043113407033330700500500
+-- 099:ff5555ffff4444fff555555fff6666ffff1661fff431134f7f3333f7ff5ff5ff
 -- </TILES>
 
 -- <WAVES>
@@ -256,11 +266,11 @@ end
 -- 000:077100000000c90508000000000000000000c00008000000000000000000c00008000000000000000000c00008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 -- 001:6ff114000000000000000000ba811400000000000000000068a1140000000000000000006ff11a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 -- 002:4ff130000000000000000000000000000020000100f8854e0241000841000ee100021100010100000100000500000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
--- 003:900007084500c88106000000900009000000c00006000001900007000000c00006000000900009100001c00006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 003:600005084500c88106000000900009000000c00006000001900007000000c00006000000900009100001c00006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 -- </PATTERNS>
 
 -- <TRACKS>
--- 000:180301000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000500300
+-- 000:1803010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006f0300
 -- </TRACKS>
 
 -- <PALETTE>
