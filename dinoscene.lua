@@ -75,6 +75,7 @@ end
 
 
 function update()
+	poke(0x3FF8, (t % 110 // (110/8)) * 4)
 end
 
 
