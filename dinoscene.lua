@@ -75,7 +75,11 @@ end
 
 
 function update()
-	poke(0x3FF8, (t % 110 // (110/8)) * 4)
+	poke(0x3FF8, music_row())
+end
+
+function music_row()
+	return peek(0x13FFC+2)
 end
 
 
@@ -83,7 +87,7 @@ function draw_overlay()
 	vbank(1)
 	cls()
 	
-	for i=1,t%110>55 and 13 or 3 do
+	for i=1,music_row() do
 		trib(math.random(240),
 		     math.random(136),
 			 			math.random(240),
@@ -119,7 +123,7 @@ function BDR(scanline)
 	            0.1 * (scanline  + 2*t))
 	local oy = 6 * math.cos(
 	            0.07 * (scanline + 2*t))
-	if t%110>55 then
+	if music_row() >= 8 then
 		ox = ox * (1-(t % 110 / 15))
 		oy = 136-(t%110/35)*scanline-oy
 	end
