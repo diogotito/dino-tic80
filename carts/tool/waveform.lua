@@ -5,39 +5,10 @@
 -- version: 0.1
 -- script:  lua
 
--- Stay in the command line
-TIC = exit
-
-
--- Maths shorthands
-
-local PI = math.pi
-local TAU,TWO_PI = 2*math.pi,2*math.pi
-local sin,cos,tan = math.sin,math.cos,math.tan
-
-local function round(x)
-	local _i, fract = math.modf(x)
-	local rnd = fract < 0.5 and "floor" or "ceil"
-	return math[rnd](x)
-end
-
-local function clamp(value, min, max)
-	return math.min(math.max(value, min), max)
-end
-
-
 -------------------------------------
--- WAVES TO GENERATE               --
+-- WAVES TO GENERATE  (Edit here!) --
 -------------------------------------
 
--- EDIT HERE!
--- Format:
---   [<id>] = function (x)
---     return <expr>
---   end
--- where
---   x      : [ 0, 1[
---   <expr> : [-1, 1]
 WAVES = {
 	
 	-- #08: Sine wave
@@ -53,6 +24,23 @@ WAVES = {
 }
 
 -------------------------------------
+
+
+-- Maths shorthands
+
+PI = math.pi
+TAU,TWO_PI = 2*math.pi,2*math.pi
+sin,cos,tan = math.sin,math.cos,math.tan
+
+function round(x)
+	local _i, fract = math.modf(x)
+	local rnd = fract < 0.5 and "floor" or "ceil"
+	return math[rnd](x)
+end
+
+function clamp(value, min, max)
+	return math.min(math.max(value, min), max)
+end
 
 
 -- Write a waveform
@@ -76,6 +64,7 @@ function gen_wave(id, fn)
 	end
 end
 
+
 function BOOT()
 	local ids = {}
 	for id, fn in pairs(WAVES) do
@@ -89,10 +78,20 @@ function BOOT()
 	local SYNC_SFX = 1 << 3
 	sync(SYNC_SFX, 0, true)
 	trace("Wave(s) #"..table.concat(ids, ", #").." written to cart :)", 6)
-	trace(" * Press F4 / Alt+4 to check them")
-	trace(" * Don't forget to save!")
+	trace [[
+ * Press F4 / Alt+4 to check them
+   * These are globally copy-pastable!
+   * Or you can pull all SFXs like this
+     > load <another>
+     > load <this> sfx
+
+ * Don't forget to save!
+	]]
 end
 
+
+-- Stay in the command line
+TIC = exit
 
 -- <TILES>
 -- 002:0000000000000000000000000000700000007000007070000007777700077000
