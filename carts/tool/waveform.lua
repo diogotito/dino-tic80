@@ -10,12 +10,12 @@
 -------------------------------------
 
 WAVES = {
-	
+
 	-- #08: Sine wave
 	[ 8] = function (x)
 		return sin(TWO_PI * x)
-	end,	
-	
+	end,
+
 	-- #09: Cosine wave
 	[ 9] = function (x)
 		return cos(TWO_PI * x)
@@ -48,14 +48,14 @@ end
 --   fn : [0,1] -> [-1,1]
 function gen_wave(id, fn)
 	local WAVE_ADDR = 0x0FFE4 + 0x10*id
-	
+
 	for x = 0, 32 do
 		local ret = fn(x/32)
 		local val = (ret + 1) * 8
 		val = round(val)
 		val = clamp(val, 0, 15)
 		poke(2*WAVE_ADDR + x, val, 4)
-		
+
 		local fmt = ({
 			[0] = " f(%2d/16) = %+.5f",
 			[1] = " f(%2d/16) = %+.5f   [0x%X]=%2d",
@@ -73,7 +73,7 @@ function BOOT()
 		table.insert(ids, id)
 		trace("-- Waveform #"..id.." generated --\n", 7)
 	end
-	
+
 	-- Write waveforms to cartridge SFX data
 	local SYNC_SFX = 1 << 3
 	sync(SYNC_SFX, 0, true)
