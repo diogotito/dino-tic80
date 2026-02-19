@@ -1,0 +1,1 @@
+.\bin\tic80.exe --fs=.\carts --cmd="load dinolode.lua"
