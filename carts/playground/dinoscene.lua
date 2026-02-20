@@ -75,7 +75,7 @@ function update_channels()
 	poke(0x14001, chan[2] and 0xFF or 0)
 	poke(0x14002, chan[3] and 0xFF or 0)
 	poke(0x14003, chan[4] and 0xFF or 0)
-	
+
 	if chan[3] and bar < 16 then
 		local m = music_row()
 		local l = bar < 12 and 7 or 8
@@ -94,7 +94,7 @@ function _entered_new_bar()
 	if bar == 4 then chan[3] = true end
 	if bar == 8 then chan[4] = true end
 	if bar ==16 then chan[1] = true end
-	
+
 	if bar == 1 then 	pit(18, 0) end
 	if bar == 2 then
 		pit(23, 7) pit(24, 6) pit(25, 7)
@@ -111,9 +111,9 @@ function update()
 	elseif music_row() ~= 255 then
 		new_bar = false
 	end
-	
+
 	if bar < 8 then return end
-	
+
 	poke(0x3FF8, music_row())
 end
 
@@ -124,10 +124,10 @@ function draw_overlay()
 	local m,f
 
 	if bar < 12 then goto NoMoreVFX end
-	
+
 	vbank(0)
 	m=music_row()
-	if bar >= 16 then	
+	if bar >= 16 then
 		vbank(m >= 8 and 1 or 0)
 		m=m*(m<8 and 1 or 2)
 	end
@@ -144,7 +144,7 @@ function draw_overlay()
 		  math.random(136),
 		  math.random(16))
 	end
-	
+
 ::NoMoreVFX::
 
 	vbank(0)
@@ -165,7 +165,7 @@ end
 -- of the cartridge name
 function BDR(scanline)
 	if bar < 3 then return end
-		
+
 	-- wavy raster effects
 	local a = math.min(bar-1, 12)/10
 	if bar < 10 then a = a * a end
@@ -176,15 +176,21 @@ function BDR(scanline)
 	offset_screen(ox, oy)
 
 	if bar < 8 then return end
-	
+
 	-- palette fuckery
 	local col = 1-(t/30)*190
+	local prev = vbank(0)
 	poke(0x3FDB, col-1.1*scanline)
 	poke(0x3FDC, col-1.2*scanline+t)
 	poke(0x3FDD, col-2*scanline)
-	
+	vbank(1)
+	poke(0x3FD2, col-1.1*scanline)
+	poke(0x3FD3, col-1.2*scanline+t)
+	poke(0x3FD4, col-2*scanline)
+	vbank(prev)
+
 	if bar < 12 then return end
-	
+
 	if music_row() >= 8 then
 		if bar < 16 then return end
 		ox = ox * (1-(t % 110 / 15))
@@ -196,46 +202,52 @@ function BDR(scanline)
 end
 
 CUBE = {} -- filled by DINOCUBE code
+zBoost = 0
 
 function TIC()
 	---------- update -----------
-	
+
 	update()
-	
+
 	----------- draw ------------
-	
+
 	vbank(0)
-	
+
 	map()
 	circ(230, 0, 20, 4)
 	spr((music_row() % 8 < 4)
 			and 99 or 83, 120, 40, 15)
 
-	if bar < 3 then return end		
-	
+	if bar < 3 then return end
+
 	-- dino
 	spr(48, 20, 24, 0, 1, 0, 0, 3, 3)
 
 	if bar < 4 then return end
-	
+
 	line(42, 32, 55, 26, 0)
 	print(
 		("gwwaaaaaaaaarrgh"):sub(1, 1+2*music_row()),
 		56, 20, 0)
-	
+
 	----------- overlay ------------
-	
+
 	vbank(1) draw_overlay() vbank(0)
-	
+
 	---------- advance t -----------
-	
+
 	t = t + 1
 
 	-------- DINOCUBE TIC: ---------
-	
+
 	if bar >= 16 then
-		local oomph = music_row()%7/3-1
-		CUBE.z = 110 - 50*(1 - oomph^2)
+		if music_row() % 2 == 0 and
+				zBoost < 10.0 then
+			zBoost = 80
+		else
+			zBoost = zBoost * 0.92
+		end
+		CUBE.z = 160 - zBoost
 		vbank(1) CUBE.TIC() vbank(0)
 	end
 
@@ -407,7 +419,7 @@ function TIC() -- DINOCUBE
 	if x>213 then vx=-1 vrY=-vrY end
 	if y<26  then vy= 1 vrX=-vrX end
 	if y>105 then vy=-1 vrX=-vrX end
-	
+
 	rX, rY, rZ = rX+vrX, rY+vrY, rZ+vrZ
 
 	-- draw it
@@ -424,7 +436,7 @@ function TIC() -- DINOCUBE
 
 	transform(scn_verts,
 	          rX, rY, rZ,
-	          20, 20, 20,
+	          40, 40, 40,
 	          x, y, z)
 
 	cls(0)
