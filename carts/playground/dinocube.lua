@@ -30,7 +30,7 @@ function mktri(i1,j1, i2,j2, i3,j3)
 	}
 end
 
-tris={-- mktri(<vertex, UV> * 3)
+cube_tris={
 	-- front face
 	mktri(1,1, 2,2, 3,3),
 	mktri(2,2, 4,4, 3,3),
@@ -43,10 +43,10 @@ tris={-- mktri(<vertex, UV> * 3)
 	-- left face
 	mktri(1,2, 5,1, 3,4),
 	mktri(3,4, 7,3, 5,1),
-	-- up face
+	-- top face
 	mktri(5,1, 6,2, 1,3),
 	mktri(6,2, 2,4, 1,3),
-	--down face
+	--bottom face
 	mktri(7,2, 8,1, 3,4),
 	mktri(8,1, 4,3, 3,4),
 }
@@ -69,37 +69,26 @@ function transform(verts,
 	for _, v in ipairs(verts) do
 		-- unpack vertex to nice variables
 		local vx,vy,vz = table.unpack(v)
-		local rx,ry,rz
-
 		-- rotate on X
-		ry = vy*cosX - vz*sinX
-		rz = vy*sinX + vz*cosX
-		vy,vz = ry,rz
-
-		-- rotate on Y (why sign change?)
-		rx = vx*cosY + vz*sinY
-		rz =-vx*sinY + vz*cosY
-		vx,vz = rx,rz
-
+		vy,vz =  vy*cosX - vz*sinX,
+		         vy*sinX + vz*cosX
+		-- rotate on Y
+		vx,vz =  vx*cosY + vz*sinY,
+		        -vx*sinY + vz*cosY
 		-- rotate on Z
-		rx = vx*cosZ - vy*sinZ
-		ry = vx*sinZ + vy*cosZ
-		vx,vy = rx,ry
-
+		vx,vy =  vx*cosZ - vy*sinZ,
+		         vx*sinZ + vy*cosZ
 		-- scale
 		vx = sX * vx
 		vy = sY * vy
 		vz = sZ * vz
-
 		-- perspective!
 		vz = vz + tZ
-		local persp = vz / 100
+		local persp = vz / 100 -- idk rly
 		vx, vy = vx/persp, vy/persp
-
 		-- translate
 		vx = vx + tX
 		vy = vy + tY
-
 		-- update vertex coordinates
 		v[1],v[2],v[3] = vx,vy,vz
 	end
@@ -133,7 +122,7 @@ function deepcopy(t)
 	end
 	return new
 end
-
+--[[
 function cat_tbls(...)
 	local tbls, cat = {...}, {}
 	for _, t in ipairs(tbls) do
@@ -141,7 +130,7 @@ function cat_tbls(...)
 	end
 	return cat
 end
-
+--]]
 function dump_tbl(t, i)
 	i = i or 0
 	local out = {tostring(t)}
@@ -174,18 +163,27 @@ function TIC()
 	if btn(4) then z=z+1 end
 	if btn(5) then z=z-1 end
 
-	cls(0)
-
 	local a = t / 60 * 2*pi
 	local rX,rY,rZ = .1*a, .25*a, .35*a
-	for _, t in ipairs(tris) do
+
+	local scn_tris  = {}
+	local scn_verts = {}
+
+	for _, t in ipairs(cube_tris) do
 		local tt = deepcopy(t)
-		transform(tt.verts,
-		          rX, rY, rZ,
-		          20, 20, 20,
-		          x, y, z)
-		trace(dump_tbl(tt.verts))
-		render_tri(tt)
+		table.insert(scn_tris, tt)
+		table.move(tt.verts, 1, 3,
+				#scn_verts + 1, scn_verts)
+	end
+
+	transform(scn_verts,
+	          rX, rY, rZ,
+	          20, 20, 20,
+	          x, y, z)
+
+	cls(0)
+	for _, t in ipairs(scn_tris) do
+		render_tri(t)
 	end
 
 	t=t+1
