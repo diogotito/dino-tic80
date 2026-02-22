@@ -6,29 +6,36 @@
 -- version: 0.1
 -- script:  lua
 
-CAM_SPEED = 0.5
-
 TILE_SKY = 1
 TILE_BG  = 18   N_BG = 2
 
-GROUND_Y = --[[ first Y coordinate where dirt begins ]] (function() for y=0,135 do if mget(0,y)~=TILE_SKY then return y end end end)()
+--GROUND_Y = --[[ first Y coordinate where dirt begins ]] (function() for y=0,135 do if mget(0,y)~=TILE_SKY then return y end end end)()
 
-cam={x=0,y=0,speed=CAM_SPEED}
+CAM_SPEED = 1.0
+cam = { x=0, y=0 }
 
 function cam.move()
-	local UP,DOWN,LEFT,RIGHT = 0,1,2,3
-
+	local UP, DOWN, LEFT, RIGHT, A, B =
+	  0, 1, 2, 3, 4, 5
+	
+	local speed
+	do
+		local slow = btn(A) and 0.5 or 1
+		local fast = btn(B) and 2.0 or 1
+		speed = CAM_SPEED * slow * fast
+	end
+	
 	if btn(UP) then
-		cam.y = math.max(0, cam.y - CAM_SPEED)
+		cam.y = math.max(0, cam.y - speed)
 	end
 	if btn(DOWN) then
-		cam.y = math.min(135, cam.y + CAM_SPEED)
+		cam.y = math.min(135, cam.y + speed)
 	end
 	if btn(LEFT) then
-		cam.x = math.max(0, cam.x - CAM_SPEED)
+		cam.x = math.max(0, cam.x - speed)
 	end
 	if btn(RIGHT) then
-		cam.x = math.min(239, cam.x + CAM_SPEED)
+		cam.x = math.min(239, cam.x + speed)
 	end
 end
 
@@ -39,7 +46,7 @@ end
 
 
 function TIC()
-	cam:move()
+	cam.move()
 	cls()
 	
 	-- paint cave background
@@ -47,18 +54,35 @@ function TIC()
 	local py = 0.5 * cam.y % (8*N_BG)
 	map(0,0, 31,18, -px,-py, -1, 1,
 	    function (id, x,y)
-	    	return TILE_BG + (x+y)%N_BG
+	    	return TILE_BG + (x+y) % N_BG
 	    end)
 
 	-- paint dirt tiles
 	local sx, sy = cam.x % 8, cam.y % 8
 	local tx, ty = cam.x //8, cam.y //8
 	map(tx,ty, 31,18, -sx,-sy, 0, 1)
-	
-	print("cam: "..cam.x..","..cam.y, 10, 10)
-	print("sxy: "..sx..","..sy, 10, 20)
-	print("txy: "..tx..","..ty, 10, 30)
-	print("pxy: "..px..","..py, 10, 40)
+
+	-- debugs	
+	do
+		local dbg_y = 10
+		local pt = "(%6.2f, %6.2f)"
+		local function dbg(what, x,y)
+			print(what, 10,dbg_y, 8, false, 1, true)
+			local val = x and (
+					y and pt:format(x,y) or x
+				) or ""
+			print(val, 75,dbg_y, 11, true, 1, true)
+			dbg_y = dbg_y + 10
+		end
+		dbg("camera position", cam.x,cam.y)
+		dbg("fg scroll"      , sx,sy)
+		dbg("fg 1st map tile", tx,ty)
+		dbg("parallax scroll", px,py)
+		dbg""dbg""dbg""dbg""dbg""
+		dbg("move camera", "arrow keys")
+		dbg("move slower", "hold A (Z key)")
+		dbg("move faster", "hold B (X key)")
+	end
 end
 
 -- <TILES>
