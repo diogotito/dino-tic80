@@ -10,7 +10,22 @@ TILE_SKY = 1
 TILE_BG  = 18  N_BG = 2
 TILE_DUG = 22
 
-GROUND_Y = --[[ first Y coordinate where dirt begins ]] (function() for y=0,135 do if mget(0,y)~=TILE_SKY then return y end end end)()
+-- first Y coordinate where dirt begins
+GROUND_Y = (function()
+	for y=0,135 do
+		if mget(0,y) ~= TILE_SKY then
+			return y
+end end end)()
+
+
+function clamp(v,min,max)
+	return math.max(math.min(v,max),min)
+end
+
+function btoi(b)
+	return b and 1 or 0
+end
+
 
 CAM_SPEED = 1.0
 cam = { x=0, y=0 }
@@ -18,28 +33,19 @@ cam = { x=0, y=0 }
 function cam.move()
 	local UP, DOWN, LEFT, RIGHT, A, B =
 	  0, 1, 2, 3, 4, 5
-	
-	local speed
-	do
-		local slow = btn(A) and 0.5 or 1
-		local fast = btn(B) and 2.0 or 1
-		speed = CAM_SPEED * slow * fast
-	end
-	
-	if btn(UP) then
-		cam.y = math.max(0, cam.y - speed)
-	end
-	if btn(DOWN) then
-		cam.y = math.min(135, cam.y + speed)
-	end
-	if btn(LEFT) then
-		cam.x = math.max(0, cam.x - speed)
-	end
-	if btn(RIGHT) then
-		cam.x = math.min(239, cam.x + speed)
-	end
-end
 
+	local speed = CAM_SPEED
+	  * (btn(A) and 0.5 or 1) -- slower
+	  * (btn(B) and 2.0 or 1) -- faster
+
+	local dx, dy =
+		btoi(btn(RIGHT)) - btoi(btn(LEFT)),
+		btoi(btn(DOWN))  - btoi(btn(UP))
+
+	cam.x, cam.y =
+		clamp(cam.x + speed * dx, 0, 239),
+		clamp(cam.y + speed * dy, 0, 135)
+end
 
 -- Dirt tunnel edge effect autotiling
 -- remap funcion
@@ -59,8 +65,8 @@ function autotile_dirt_edge(id, x, y)
 	                     {x=x-1, y=y  },
 	                     {x=x+1, y=y  }}
 	do
-		local neigh = mget(adj.x, adj.y)
-		if fget(neigh, FLAG_DIRT) then
+		local adj_id = mget(adj.x, adj.y)
+		if fget(adj_id, FLAG_DIRT) then
 			id = id + (1 << (i-1))
 		end
 	end
@@ -78,7 +84,7 @@ end
 function TIC()
 	cam.move()
 	cls()
-	
+
 	-- paint background
 	local tx = .5*cam.x //(8*N_BG)*N_BG
 	local ty = .5*cam.y //(8*N_BG)*N_BG
@@ -86,7 +92,7 @@ function TIC()
 	local sy = .5*cam.y % (8*N_BG)
 	map(tx,ty, 32,19, -sx,-sy, -1, 1,
 		function (id, x, y)
-			if y >= GROUND_Y then
+			if y > GROUND_Y then
 				return TILE_BG + (x+y) % N_BG
 			else
 				return TILE_SKY
@@ -112,7 +118,7 @@ function TIC()
 				return id
 			end
 		end)
-	
+
 	map(tx,ty, 31,18, -sx,-sy, {0,15}, 1,
 	    autotile_dirt_edge)
 
@@ -131,7 +137,6 @@ function TIC()
 		dbg("camera position", cam.x,cam.y)
 		dbg("fg scroll"      , sx,sy)
 		dbg("fg 1st map tile", tx,ty)
-		dbg("parallax scroll", px,py)
 		dbg""dbg""dbg""dbg""dbg""
 		dbg("move camera", "arrow keys")
 		dbg("move slower", "hold A (Z key)")
@@ -164,7 +169,7 @@ end
 -- 064:0000000060000000600000006600006666600666666666666666666606666666
 -- 065:0006666600666666666666606666666666666600666666006666666666666606
 -- 066:6666000066660000000000006600000000000000000000000000000000000000
--- 070:2030320022222320223222220322033002022202002202020002020200000000
+-- 070:2230322202222320223202220322033002022202002202020002020000000000
 -- 080:0066666600066666000066660000066600000666000006600000060000000660
 -- 081:6666660066666600666660006666000006600000006000000060000000660000
 -- 083:f35555ff3f3333fff555555fff6060ffff6666fff63222ffff22225ff5ffffff
