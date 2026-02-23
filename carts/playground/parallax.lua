@@ -87,7 +87,20 @@ end
 
 
 function BDR(scanline)
-
+	if scanline == 0 then
+		set_dark_palette(0)
+	elseif scanline >= 4 and
+	       scanline < 14 then
+		local mul=0.2+0.15*((t+scanline)%2)
+		set_dark_palette(mul)
+	elseif scanline >= 14 and
+	       scanline <  17 then
+		local mul = 1-(.7-.15*((t+scanline)%2))
+		              *(17-scanline)/3
+		set_dark_palette(mul)
+	elseif scanline == 17 then
+		set_dark_palette(0)
+	end
 end
 
 
@@ -144,7 +157,7 @@ function draw_hud(tx, ty, t)
 	-- Darkened overlay on top
 	local SCREEN    = 0x00000
 	local CURSED    = 0x17100
-	local N_LINES   = 10 * 240/2
+	local N_LINES   = 12 * 240/2
 	vbank(0)
 	memcpy(CURSED, SCREEN, N_LINES)
 	vbank(1)
@@ -155,7 +168,7 @@ function draw_hud(tx, ty, t)
 	local function hud_txt(txt, x)
 		local SH = 11 -- text shadow
 		local FG = 12 -- text foreground
-		local  Y = 2
+		local  Y = 3
 		print(txt, x+1, Y+1, SH, true)
 		print(txt, x  , Y  , FG, true)
 	end
@@ -165,11 +178,11 @@ function draw_hud(tx, ty, t)
 	local txt1, txt2 =
 			("%02d/%02d"):format(tx,ty),
 			("%2d%s%02d"):format(mm,sep,ss)
-	hud_txt(txt1,  18)
+	hud_txt(txt1,  16)
 	hud_txt(txt2, 202)
 
-	spr(176,   6, 1, {0})
-	spr(177, 195, 1, {0})
+	spr(176, 5, 2, {0})
+	spr(177+t//3%10, 195, 2, {0})
 
 	-- Restore VRAM bank
 	vbank(0)
@@ -181,18 +194,18 @@ do --palette ** RESERVED ** memcpy hax
 	local N_PALS = 10
 	local PAL    = 0x3FC0
 	local CURSED = 0x17000
-	
+
 	function copy_initial_palette()
 		vbank(0)
 		memcpy(CURSED, PAL, 3*N_PALS)
-		
+
 		-- also setup vbank 1 transparency
 		local OVR_TRANS = 0x3FF8
 		vbank(1)
 		poke(OVR_TRANS, 15)
 		vbank(0)
 	end
-	
+
 	-- hax: setup bank 1 palette
 	-- as a darkened version of bank 0
 	function set_dark_palette(mul)
@@ -210,7 +223,7 @@ do --palette ** RESERVED ** memcpy hax
 		end
 		vbank(0)
 	end
-	
+
 end--palette ** RESERVED ** memcpy hax
 -- <TILES>
 -- 001:9999999999999999999999999999999999999999999999999999999999999999
@@ -259,10 +272,16 @@ end--palette ** RESERVED ** memcpy hax
 -- 141:1000001111000001100000111100000110000011110000011010101111111111
 -- 142:1111111110101011110000111000000111000011100000011110101111111111
 -- 176:0000b000000bdb0000bdbb000bddddb000bbbdb0000bdb0000bdb000000b0000
--- 177:0bb00bb0beebbeeb0bbbbbb00beeeeb0bedcbdebbedccdeb0beeeeb000bbbb00
--- 178:0bb00bb0beebbeeb0bbbbbb00beeeeb0bedccdebbedcbdeb0beeeeb000bbbb00
--- 179:0bb00bb0beebbeeb0bbbbbb00beeeeb0bedccdebbedbcdeb0beeeeb000bbbb00
--- 180:0bb00bb0beebbeeb0bbbbbb00beeeeb0bedbcdebbedccdeb0beeeeb000bbbb00
+-- 177:0b0000b0bebbbbeb0beeeeb0bedcbdebbdccbcdbbedccdeb0beeeeb000bbbb00
+-- 178:0b0000b0bebbbbeb0beeeeb0bedccbebbdccbcdbbedccdeb0beeeeb000bbbb00
+-- 179:0b0000b0bebbbbeb0beeeeb0bedccdebbdccbbdbbedccdeb0beeeeb000bbbb00
+-- 180:0b0000b0bebbbbeb0beeeeb0bedccdebbdccbcdbbedccbeb0beeeeb000bbbb00
+-- 181:0b0000b0bebbbbeb0beeeeb0bedccdebbdccbcdbbedcbdeb0beeeeb000bbbb00
+-- 182:0b0000b0bebbbbeb0beeeeb0bedccdebbdcbccdbbedbcdeb0beeeeb000bbbb00
+-- 183:0b0000b0bebbbbeb0beeeeb0bedccdebbdcbccdbbebccdeb0beeeeb000bbbb00
+-- 184:0b0000b0bebbbbeb0beeeeb0bedccdebbdbbccdbbedccdeb0beeeeb000bbbb00
+-- 185:0b0000b0bebbbbeb0beeeeb0bebccdebbdcbccdbbedccdeb0beeeeb000bbbb00
+-- 186:0b0000b0bebbbbeb0beeeeb0bedbcdebbdcbccdbbedccdeb0beeeeb000bbbb00
 -- </TILES>
 
 -- <MAP>
