@@ -182,7 +182,7 @@ function draw_hud(tx, ty, t)
 	hud_txt(txt2, 202)
 
 	spr(176, 5, 2, {0})
-	spr(177+t//3%10, 195, 2, {0})
+	spr(177+t//3%10, 195, 1+t%60//30, {0})
 
 	-- Restore VRAM bank
 	vbank(0)
