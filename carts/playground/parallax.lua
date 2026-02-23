@@ -44,24 +44,23 @@ end
 -- Dirt tunnel edge effect autotiling
 -- remap funcion
 
-IS_DIRT = { [16] = true, [17] = true ,
-            [32] = true, [33] = true }
-
-IS_HOLLOW={ [00] = true, [01] = true ,
-            [18] = true, [19] = true ,
-            [35] = true, [50] = true ,
-            [48] = true, [49] = true }
-
+FLAG_HOLLOW = 0
+FLAG_DIRT   = 1
 AUTOTILE_BASE = 127
 
 function autotile_dirt_edge(id, x, y)
-	if id ~= 0 then return end
+	if not fget(id, FLAG_HOLLOW) then
+		return 0 -- a transparent tile
+	end
 
 	id = AUTOTILE_BASE
-	for i, pos in ipairs{
-		{x,y-1}, {x,y+1}, {x-1,y}, {x+1,y}
-	} do
-		if IS_DIRT[mget(pos[1],pos[2])] then
+	for i, pos in ipairs{{x  ,y-1},
+	                     {x  ,y+1},
+	                     {x-1,y  },
+	                     {x+1,y  }}
+	do
+		local neigh = mget(pos[1], pos[2])
+		if fget(neigh, FLAG_DIRT) then
 			id = id + (1 << (i-1))
 		end
 	end
