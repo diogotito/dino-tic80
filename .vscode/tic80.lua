@@ -201,7 +201,7 @@ function line(x0, y0, x1, y1, color) end
 ---@param h? integer
 ---@param sx? integer
 ---@param sy? integer
----@param colorkey? integer
+---@param colorkey? color_0-15|color_0-15[]
 ---@param scale? integer
 ---@param remap? function
 function map(x, y, w, h, sx, sy, colorkey, scale, remap) end
@@ -400,7 +400,7 @@ function sfx(id, note, duration, channel, volume, speed) end
 ---@param id sprite_0-511
 ---@param x integer
 ---@param y integer
----@param colorkey? color_0-15
+---@param colorkey? color_0-15|color_0-15[]
 ---@param scale? integer
 ---@param flip? flip_0-3
 ---@param rotate? rotate_0-3
