@@ -196,7 +196,7 @@ function BDR(scanline)
 		ox = ox * (1-(t % 110 / 15))
 		oy = 136-(t%110/35)*scanline-oy
 	elseif bar >= 12 then
-		ox=ox+(2-math.pow(2,(bar-14)%8))*t
+		ox=ox+(2-2^((bar-14)%8))*t
 	end
 	offset_screen(ox, oy)
 end

@@ -1,0 +1,40 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Launch TIC-80",
+            "type": "process",
+            "options": { "cwd": "${workspaceFolder}/carts" },
+            "command": "${workspaceFolder}/bin/tic80",
+            "windows": {"command": "${workspaceFolder}\\bin\\tic80.exe"},
+            "args": [
+                "--fs=${workspaceFolder}/carts",
+                "--cmd=${input:firstCommands}",
+            ],
+            "isBackground": true,
+            "runOptions": {
+                "instanceLimit": 1,
+                "instancePolicy": "warn"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "firstCommands",
+            "description": "Which commands to run after TIC-80 boots",
+            "type": "pickString",
+            "options": [
+                "load dinolode.lua",
+                // "cd playground & load dinoscene.lua & run",
+            ],
+            "default": "load dinolode.lua"
+        }
+    ]
+}
