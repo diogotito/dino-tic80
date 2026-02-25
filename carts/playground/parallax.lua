@@ -17,22 +17,48 @@ FLAG_DIRT   = 1
 FLAG_GRASS  = 2
 AUTOTILE_BASE = 127
 
--- first Y coordinate where dirt begins
+-- find first Y with dirt
 GROUND_Y = (function()
 	for y=0,135 do
 		if not fget(mget(0,y), FLAG_HOLLOW) then
 			return y
-end end end)()
+		end
+	end
+end)()
 
 
-function clamp(v,min,max)
-	return math.max(math.min(v,max),min)
-end
+-- Lua utils
 
 function btoi(b)
 	return b and 1 or 0
 end
 
+function clamp(v,min,max)
+	return math.max(math.min(v,max),min)
+end
+
+function lerp(from, to, factor)
+	return from + factor * (to - from)
+end
+
+
+-- TIC utils
+
+-- decorate a function to run with VRAM
+-- temporarily switched to a given bank
+function on_vbank(bank, fn)
+	return function(...)
+		local prev = vbank(bank)
+		local ret = { fn(...) }
+		vbank(prev)
+		return table.unpack(ret)
+	end
+end
+
+
+-- Game objects
+
+-- Camera
 
 CAM_SPEED = 1.0
 cam = { x=0, y=0 }
@@ -54,6 +80,106 @@ function cam.move()
 		clamp(cam.y + speed * dy, 0, 135)
 end
 
+
+-- TIC cart lifecycle
+
+t = 0
+
+function BOOT()
+	-- background music
+	music(0)
+	copy_initial_palette()
+	set_dark_palette(0.3)
+
+	-- set #15 as bank 1 transp. index
+	local OVR_TRANS = 0x3FF8
+	on_vbank(1, poke)(OVR_TRANS, 15)
+end
+
+
+function BDR(scanline)
+	if scanline == 0 then
+		set_dark_palette(0)
+	elseif scanline >= 4 and
+	       scanline < 14 then
+		local mul=0.2+0.15*((t+scanline)%2)
+		set_dark_palette(mul)
+	elseif scanline >= 14 and
+	       scanline <  17 then
+		local mul = 1-(.7-.15*((t+scanline)%2))
+		              *(17-scanline)/3
+		set_dark_palette(mul)
+	elseif scanline == 17 then
+		set_dark_palette(1)
+	end
+end
+
+
+function TIC()
+	cam.move()
+
+	on_vbank(0, cls)()
+	on_vbank(1, cls)(15)
+
+	-- paint background
+	local px = .5*cam.x //(8*N_BG)*N_BG
+	local py = .5*cam.y //(8*N_BG)*N_BG
+	local psx = .5*cam.x % (8*N_BG)
+	local psy = .5*cam.y % (8*N_BG)
+	map(px,py, 32,19, -psx,-psy, -1, 1,
+		function (id, x, y)
+			if y+py > GROUND_Y then
+				return TILE_BG + (x+y) % N_BG
+			else
+				return TILE_SKY
+			end
+		end)
+
+
+	local tx, ty, sx, sy
+	sx, sy = cam.x % 8, cam.y % 8
+	tx, ty = cam.x //8, cam.y //8
+
+	-- grass sideways parallax
+	local GRS_PRLX = 0.5
+	local gpx = GRS_PRLX * cam.x //8
+	local gsx = GRS_PRLX * cam.x % 8
+	map(gpx,ty, 32,19, -gsx,-sy, 0, 1,
+	    function(_id, _x, y)
+	    	if y == GROUND_Y-1 then
+	    		return TILE_BGGRASS
+	    	end
+	    end)
+
+	-- paint dirt tiles
+	map(tx,ty, 31,18, -sx,-sy, {0,15}, 1,
+		function (id, x, y)
+			if id == TILE_DUG then
+				local up   = mget(x, y-1)
+				local down = mget(x, y+1)
+				if up~=TILE_DUG and fget(up,FLAG_HOLLOW) then
+					return 38
+				elseif down~=TILE_DUG and fget(down,FLAG_HOLLOW) then
+					return 70
+				else
+					return 54
+				end
+			else
+				return id
+			end
+		end)
+
+	-- edge effect (autotile)
+	map(tx,ty, 31,18, -sx,-sy, {0,15}, 1,
+	    autotile_dirt_edge)
+
+	--vbank(1)
+	draw_hud(tx, ty, t)
+
+	t = t + 1
+end
+
+
 -- Dirt tunnel edge effect autotiling
 -- remap funcion
 
@@ -61,7 +187,7 @@ function autotile_dirt_edge(id, x, y)
 	if not fget(id, FLAG_HOLLOW) then
 		return 0 -- a transparent tile
 	end
-	
+
 	if fget(id, FLAG_GRASS) then
 		return id
 	end
@@ -81,115 +207,9 @@ function autotile_dirt_edge(id, x, y)
 end
 
 
--- TIC cart lifecycle
-
-t = 0
-
-function BOOT()
-	-- background music
-	music(0)
-	copy_initial_palette()
-	set_dark_palette(0.3)
-end
-
-
-function BDR(scanline)
-	if scanline == 0 then
-		set_dark_palette(0)
-	elseif scanline >= 4 and
-	       scanline < 14 then
-		local mul=0.2+0.15*((t+scanline)%2)
-		set_dark_palette(mul)
-	elseif scanline >= 14 and
-	       scanline <  17 then
-		local mul = 1-(.7-.15*((t+scanline)%2))
-		              *(17-scanline)/3
-		set_dark_palette(mul)
-	elseif scanline == 17 then
-		set_dark_palette(0)
-	end
-end
-
-
-function TIC()
-	cam.move()
-	cls()
-
-	-- paint background
-	local px = .5*cam.x //(8*N_BG)*N_BG
-	local py = .5*cam.y //(8*N_BG)*N_BG
-	local psx = .5*cam.x % (8*N_BG)
-	local psy = .5*cam.y % (8*N_BG)
-	map(px,py, 32,19, -psx,-psy, -1, 1,
-		function (id, x, y)
-			if y+py > GROUND_Y then
-				return TILE_BG + (x+y) % N_BG
-			else
-				return TILE_SKY
-			end
-		end)
-	
-	
-
-	local tx, ty, sx, sy
-	sx, sy = cam.x % 8, cam.y % 8
-	tx, ty = cam.x //8, cam.y //8
-	
-	-- grass sideways parallax
-	local GRS_PRLX = 0.5
-	local gpx = GRS_PRLX * cam.x //8
-	local gsx = GRS_PRLX * cam.x % 8
-	map(gpx,ty, 32,19, -gsx,-sy, 0, 1,
-	    function(_id, _x, y)
-	    	if y == GROUND_Y-1 then
-	    		return TILE_BGGRASS
-	    	end
-	    end)
-	
-	-- paint dirt tiles
-	map(tx,ty, 31,18, -sx,-sy, {0,15}, 1,
-		function (id, x, y)
-			if id == TILE_DUG then
-				local up   = mget(x, y-1)
-				local down = mget(x, y+1)
-				if up~=TILE_DUG and fget(up,FLAG_HOLLOW) then
-					return 38
-				elseif down~=TILE_DUG and fget(down,FLAG_HOLLOW) then
-					return 70
-				else
-					return 54
-				end
-			else
-				return id
-			end
-		end)	
-	
-	-- edge effect (autotile)
-	map(tx,ty, 31,18, -sx,-sy, {0,15}, 1,
-	    autotile_dirt_edge)
-
-	draw_hud(tx, ty, t)
-
-	t = t + 1
-end
-
--------------------------------------
-
-
 function draw_hud(tx, ty, t)
-	-- Darkened overlay on top
-	local SCREEN    = 0x00000
-	local CURSED    = 0x17100
-	local N_LINES   = 12 * 240/2
-	vbank(0)
-	memcpy(CURSED, SCREEN, N_LINES)
-	vbank(1)
-	cls(15)
-	memcpy(SCREEN, CURSED, N_LINES)
-
-	-- Display info
 	local function hud_txt(txt, x)
-		local SH = 11 -- text shadow
+		local SH = 10 -- text shadow
 		local FG = 12 -- text foreground
 		local  Y = 3
 		print(txt, x+1, Y+1, SH, true)
@@ -206,48 +226,38 @@ function draw_hud(tx, ty, t)
 
 	spr(176, 5, 2, {0})
 	spr(177+t//3%10, 195, 1+t%60//30, {0})
-
-	-- Restore VRAM bank
-	vbank(0)
 end
 
 
-do --palette ** RESERVED ** memcpy hax
+
+do -- palette tinting
 
 	local N_PALS = 10
 	local PAL    = 0x3FC0
-	local CURSED = 0x17000
 
+	local saved_pal = {}
+
+	 -- read PALETTE memory into saved_pal
 	function copy_initial_palette()
-		vbank(0)
-		memcpy(CURSED, PAL, 3*N_PALS)
-
-		-- also setup vbank 1 transparency
-		local OVR_TRANS = 0x3FF8
-		vbank(1)
-		poke(OVR_TRANS, 15)
-		vbank(0)
-	end
-
-	-- hax: setup bank 1 palette
-	-- as a darkened version of bank 0
-	function set_dark_palette(mul)
-		local DARK = {
-			[0]=peek(CURSED+0),
-			[1]=peek(CURSED+1),
-			[2]=peek(CURSED+2),
-		}
-
-		vbank(1)
-		for i=3, 3*N_PALS do
-			local orig = peek(CURSED+i)
-			local dark = DARK[i%3]
-			poke(PAL+i, dark+mul*(orig-dark))
+		for byte=0, 3*N_PALS - 1 do
+			saved_pal[byte]=peek(PAL + byte)
 		end
-		vbank(0)
 	end
 
-end--palette ** RESERVED ** memcpy hax
+	-- write saved_pal tinted to color #0
+	-- by (1-mul) to PALETTE memory
+	function set_dark_palette(mul)
+		local dark = -- saved_pal[0..2]
+		  table.move(saved_pal, 0, 2, 0, {})
+
+		for byte=3, 3*N_PALS - 1 do
+			poke(PAL+byte, lerp(
+			  dark[byte%3],saved_pal[byte],mul))
+		end
+	end
+
+end -- palette tinting
+
 -- <TILES>
 -- 001:9999999999999999999999999999999999999999999999999999999999999999
 -- 006:0000000000000000000000000000000000000000040000004500440044444444
@@ -297,17 +307,17 @@ end--palette ** RESERVED ** memcpy hax
 -- 140:1111111111010101100000111100000110000011110000011000001111000001
 -- 141:1000001111000001100000111100000110000011110000011010101111111111
 -- 142:1111111110101011110000111000000111000011100000011110101111111111
--- 176:0000b000000bdb0000bdbb000bddddb000bbbdb0000bdb0000bdb000000b0000
--- 177:0b0000b0bebbbbeb0beeeeb0bedcbdebbdccbcdbbedccdeb0beeeeb000bbbb00
--- 178:0b0000b0bebbbbeb0beeeeb0bedccbebbdccbcdbbedccdeb0beeeeb000bbbb00
--- 179:0b0000b0bebbbbeb0beeeeb0bedccdebbdccbbdbbedccdeb0beeeeb000bbbb00
--- 180:0b0000b0bebbbbeb0beeeeb0bedccdebbdccbcdbbedccbeb0beeeeb000bbbb00
--- 181:0b0000b0bebbbbeb0beeeeb0bedccdebbdccbcdbbedcbdeb0beeeeb000bbbb00
--- 182:0b0000b0bebbbbeb0beeeeb0bedccdebbdcbccdbbedbcdeb0beeeeb000bbbb00
--- 183:0b0000b0bebbbbeb0beeeeb0bedccdebbdcbccdbbebccdeb0beeeeb000bbbb00
--- 184:0b0000b0bebbbbeb0beeeeb0bedccdebbdbbccdbbedccdeb0beeeeb000bbbb00
--- 185:0b0000b0bebbbbeb0beeeeb0bebccdebbdcbccdbbedccdeb0beeeeb000bbbb00
--- 186:0b0000b0bebbbbeb0beeeeb0bedbcdebbdcbccdbbedccdeb0beeeeb000bbbb00
+-- 176:0000a000000ada0000adaa000adddda000aaada0000ada0000ada000000a0000
+-- 177:0a0000a0aeaaaaea0aeeeea0aedcadeaadccacdaaedccdea0aeeeea000aaaa00
+-- 178:0a0000a0aeaaaaea0aeeeea0aedccaeaadccacdaaedccdea0aeeeea000aaaa00
+-- 179:0a0000a0aeaaaaea0aeeeea0aedccdeaadccaadaaedccdea0aeeeea000aaaa00
+-- 180:0a0000a0aeaaaaea0aeeeea0aedccdeaadccacdaaedccaea0aeeeea000aaaa00
+-- 181:0a0000a0aeaaaaea0aeeeea0aedccdeaadccacdaaedcadea0aeeeea000aaaa00
+-- 182:0a0000a0aeaaaaea0aeeeea0aedccdeaadcaccdaaedacdea0aeeeea000aaaa00
+-- 183:0a0000a0aeaaaaea0aeeeea0aedccdeaadcaccdaaeaccdea0aeeeea000aaaa00
+-- 184:0a0000a0aeaaaaea0aeeeea0aedccdeaadaaccdaaedccdea0aeeeea000aaaa00
+-- 185:0a0000a0aeaaaaea0aeeeea0aeaccdeaadcaccdaaedccdea0aeeeea000aaaa00
+-- 186:0a0000a0aeaaaaea0aeeeea0aedacdeaadcaccdaaedccdea0aeeeea000aaaa00
 -- </TILES>
 
 -- <MAP>
@@ -395,7 +405,7 @@ end--palette ** RESERVED ** memcpy hax
 -- </FLAGS>
 
 -- <PALETTE>
--- 000:2f2a35443d386256539a5d40a981433b42626f7777989da0c2b8a9d9dbba000404ffffff000000000000000000000000
+-- 000:2f2a35443d386256539a5d40a981433b42626f7777989da0c2b8a9d9dbba000404ffffffd9dbbaffca10ee381c000000
 -- 001:2f2a35000000000000000000000000000000000000000000000000000000000000000000d9dbbaffca10ee381c000000
 -- </PALETTE>
 
