@@ -43,6 +43,22 @@ end
 
 
 function BDR(scanline)
+	restore_palette()
+
+	local Y0 = 8*GROUND_Y
+	local depth = cam.y - Y0 + scanline
+
+	if depth > 30*8 then
+		set_dirt_colors({ 48, 30,  8}
+		               ,{ 28, 10, 12})
+	elseif depth > 20*8 then
+		set_dirt_colors({35,44,9}
+		               ,{10,70,50})
+	elseif depth > 10*8 then
+		set_dirt_colors({79,40,30}
+		               ,{90,50,20})
+	end
+
 	local flick = 0.15 * ((t+scanline)%2)
 
 	-- top border
@@ -234,25 +250,42 @@ PAL    = 0x3FC0
 
 saved_pal = {}
 
- -- read PALETTE memory into saved_pal
+-- read PALETTE memory into saved_pal
 function copy_initial_palette()
 	for byte=0, 3*N_PALS - 1 do
-		saved_pal[byte]=peek(PAL + byte)
+		saved_pal[byte] = peek(PAL + byte)
 	end
 end
 
--- write saved_pal tinted to color #0
--- by (1-mul) to PALETTE memory
+-- write saved_pal to PALETTE memory
+function restore_palette()
+	for byte=0, 3*N_PALS - 1 do
+		poke(PAL + byte, saved_pal[byte])
+	end
+end
+
+-- mix color 0 to the next 9 colors
+-- in the palette by a given factor
 function set_dark_palette(mul)
 	local dark = -- saved_pal[0..2]
 	  table.move(saved_pal, 0, 2, 0, {})
 
 	for byte=3, 3*N_PALS - 1 do
 		poke(PAL+byte, lerp(
-		  dark[byte%3],saved_pal[byte],mul))
+		  dark[byte%3],peek(PAL+byte),mul))
 	end
 end
 
+-- Set or reset colors 1 and 2
+function set_dirt_colors(d1, d2)
+	local bs = {}
+	table.move(d1 or saved_pal,
+	  btoi(d1), 2 + btoi(d1), 3, bs)
+	table.move(d2 or saved_pal,
+	  btoi(d2), 2 + btoi(d2), 6, bs)
+
+	for b=3,8 do poke(PAL+b, bs[b]) end
+end
 
 --------------------------------------
 -- utils
