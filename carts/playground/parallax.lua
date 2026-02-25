@@ -278,11 +278,11 @@ end
 
 -- Set or reset colors 1 and 2
 function set_dirt_colors(d1, d2)
-	local bs = {}
-	table.move(d1 or saved_pal,
-	  btoi(d1), 2 + btoi(d1), 3, bs)
-	table.move(d2 or saved_pal,
-	  btoi(d2), 2 + btoi(d2), 6, bs)
+	d1 = d1 or {unpack(saved_pal, 3, 5)}
+	d2 = d2 or {unpack(saved_pal, 6, 8)}
+
+	local bs = {nil, nil, unpack(d1)}
+	bs[6], bs[7], bs[8] = unpack(d2)
 
 	for b=3,8 do poke(PAL+b, bs[b]) end
 end
@@ -290,6 +290,8 @@ end
 --------------------------------------
 -- utils
 --------------------------------------
+
+unpack = table.unpack
 
 function btoi(b)
 	return b and 1 or 0
