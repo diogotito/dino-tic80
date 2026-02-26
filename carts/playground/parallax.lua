@@ -60,7 +60,7 @@ function BDR(scanline)
 	end
 
 	dim_all_colors(
-	  clamp(1 - depth/200, 0, 1))
+	  clamp(1 - depth/400, 0, 1))
 
 	local flick = 0.15 * ((t+scanline)%2)
 
@@ -284,7 +284,7 @@ end
 function set_tint_palette(mul)
 	for byte=0, 3*N_PALS - 1 do
 		poke(PAL + byte,
-		     lerp(saved_pal[byte % 3],
+		     lerp(peek(PAL + byte % 3),
 				        peek(PAL + byte),
 				        mul))
 	end
