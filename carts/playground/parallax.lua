@@ -36,7 +36,7 @@ LAYER_COLORS = {
 		[C_DIRT2] = { 28,  10,  12},
 	}},
 }
--- sort by descending depth
+-- sort by descending depth, for :at()
 table.sort(LAYER_COLORS,function(l1,l2)
 	return l1.below_y > l2.below_y
 end)
@@ -67,7 +67,6 @@ end)()
 t = 0
 
 function BOOT()
-	-- background music
 	music(0)
 	pal:grab()
 end
@@ -94,14 +93,12 @@ function BDR(scanline)
 	if scanline < 4 then
 		--tint = tint * 1-(.7-flick)*(scanline)/3
 	-- tinted HUD backdrop with flickering
-	elseif scanline >= 4 and
-	       scanline < 14 then
+	elseif scanline < 14 then
 		tint = tint * 0.2+flick
 	-- HUD bottom transparency falloff
-	elseif scanline >= 14 and
-	       scanline <  17 then
-		tint = tint * 1-(.7-flick)
-		              *(17-scanline)/3
+	elseif scanline < 17 then
+		tint = tint * (1-(.7-flick)
+		                *(17-scanline)/3)
 	-- below the HUD
 	elseif scanline == 17 then
 		tint = tint * 1
