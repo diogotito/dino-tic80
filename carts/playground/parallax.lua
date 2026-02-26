@@ -38,7 +38,7 @@ function BOOT()
 	-- background music
 	music(0)
 	copy_initial_palette()
-	set_dark_palette(0.3)
+	set_tint_palette(0.3)
 end
 
 
@@ -59,25 +59,29 @@ function BDR(scanline)
 		               ,{90,50,20})
 	end
 
+	dim_all_colors(
+	  clamp(1 - depth/200, 0, 1))
+
 	local flick = 0.15 * ((t+scanline)%2)
 
 	-- top border
-	if scanline == 0 then
-		set_dark_palette(0)
+	if scanline < 4 then
+		local mul = 1-(.7-flick)*(scanline)/3
+		set_tint_palette(mul)
 	-- tinted HUD backdrop with flickering
 	elseif scanline >= 4 and
 	       scanline < 14 then
 		local mul=0.2+flick
-		set_dark_palette(mul)
+		set_tint_palette(mul)
 	-- HUD bottom transparency falloff
 	elseif scanline >= 14 and
 	       scanline <  17 then
 		local mul = 1-(.7-flick)
 		              *(17-scanline)/3
-		set_dark_palette(mul)
+		set_tint_palette(mul)
 	-- below the HUD
 	elseif scanline == 17 then
-		set_dark_palette(1)
+		set_tint_palette(1)
 	end
 end
 
@@ -277,12 +281,19 @@ end
 
 -- mix color 0 to the next 9 colors
 -- in the palette by a given factor
-function set_dark_palette(mul)
-	for byte=3, 3*N_PALS - 1 do
+function set_tint_palette(mul)
+	for byte=0, 3*N_PALS - 1 do
 		poke(PAL + byte,
 		     lerp(saved_pal[byte % 3],
 				        peek(PAL + byte),
 				        mul))
+	end
+end
+
+-- Darken all palette colors
+function dim_all_colors(mul)
+	for byte=0, 3*N_PALS - 1 do
+		poke(PAL+byte, peek(PAL+byte)* mul)
 	end
 end
 
