@@ -79,35 +79,35 @@ function BDR(scanline)
 	local Y0 = 8*GROUND_Y
 	local depth = cam.y-Y0 + scanline-4
 
-	pal.apply_changes(LAYER_COLORS:at(depth))
+	pal.apply_changes(
+		LAYER_COLORS:at(depth))
 
-	pal.apply_tint(
-	  clamp(1 - depth/350, 0, 1))
-
-	pal.apply_tint(
-	  clamp(1 - 0.9*((scanline-70) / 70)^4, 0, 1))
+	local tint =
+	  -- shade depths
+	  clamp(1 - depth/350, 0, 1) *
+	  -- shade bottom of screen
+	  clamp(1 - 0.9*(math.max(0, scanline-70) / 70)^4, 0, 1)
 
 	local flick = 0.15 * ((t+scanline)%2)
 
 	-- top border
 	if scanline < 4 then
-		local mul = 1-(.7-flick)*(scanline)/3
-		pal.apply_tint(mul)
+		--tint = tint * 1-(.7-flick)*(scanline)/3
 	-- tinted HUD backdrop with flickering
 	elseif scanline >= 4 and
 	       scanline < 14 then
-		local mul=0.2+flick
-		pal.apply_tint(mul)
+		tint = tint * 0.2+flick
 	-- HUD bottom transparency falloff
 	elseif scanline >= 14 and
 	       scanline <  17 then
-		local mul = 1-(.7-flick)
+		tint = tint * 1-(.7-flick)
 		              *(17-scanline)/3
-		pal.apply_tint(mul)
 	-- below the HUD
 	elseif scanline == 17 then
-		pal.apply_tint(1)
+		tint = tint * 1
 	end
+
+	pal.apply_tint(tint)
 end
 
 
@@ -117,6 +117,11 @@ function TIC()
 	cls()
 
 	local tx,ty, sx,sy
+	-- local old_map, map = map, function (...) end
+	--[[local old_map = map
+	local function map(a,b, c,d, e,f, g, h, _i)
+		old_map(a,b, c,d, e,f, g, h)
+	end--]]
 
 	-- sky/underground background
 	tx,ty, sx,sy = cam:parallax(0.5)
