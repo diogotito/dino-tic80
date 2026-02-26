@@ -52,15 +52,18 @@ function BDR(scanline)
 		set_dirt_colors({ 48, 30,  8}
 		               ,{ 28, 10, 12})
 	elseif depth > 20*8 then
-		set_dirt_colors({35,44,9}
-		               ,{10,70,50})
+		set_dirt_colors({ 35, 44, 9}
+		               ,{ 10, 70, 50})
 	elseif depth > 10*8 then
-		set_dirt_colors({79,40,30}
-		               ,{90,50,20})
+		set_dirt_colors({ 79, 40, 30}
+		               ,{ 90, 50, 20})
 	end
 
-	dim_all_colors(
-	  clamp(1 - depth/400, 0, 1))
+	set_tint_palette(
+	  clamp(1 - depth/350, 0, 1))
+
+	set_tint_palette(
+	  clamp(1 - 0.9*((scanline-70) / 70)^4, 0, 1))
 
 	local flick = 0.15 * ((t+scanline)%2)
 
