@@ -23,18 +23,18 @@ C_DIRT1 = 1
 C_DIRT2 = 2
 
 LAYER_COLORS = {
-	{ below_y=10,
-	  [C_DIRT1] = { 79,  40,  30},
-	  [C_DIRT2] = { 90,  50,  20},
-	},
-	{ below_y=20,
-	  [C_DIRT1] = { 35,  44,   9},
-	  [C_DIRT2] = { 10,  70,  50},
-	},
-	{ below_y=30, -- y is in tiles
-	  [C_DIRT1] = { 48,  30,   8},
-	  [C_DIRT2] = { 28,  10,  12},
-	},
+	{ below_y=10, {
+		[C_DIRT1] = { 79,  40,  30},
+		[C_DIRT2] = { 90,  50,  20},
+	}},
+	{ below_y=20, {
+		[C_DIRT1] = { 35,  44,   9},
+		[C_DIRT2] = { 10,  70,  50},
+	}},
+	{ below_y=30, {
+		[C_DIRT1] = { 48,  30,   8},
+		[C_DIRT2] = { 28,  10,  12},
+	}},
 }
 -- sort by descending depth
 table.sort(LAYER_COLORS,function(l1,l2)
@@ -44,9 +44,10 @@ end)
 function LAYER_COLORS:at(depth)
 	for _, layer in ipairs(self) do
 		if depth >= layer.below_y * 8 then
-			return layer
+			return layer[1]
 		end
 	end
+	return {}
 end
 
 -- find first Y with dirt
@@ -68,66 +69,57 @@ t = 0
 function BOOT()
 	-- background music
 	music(0)
-	copy_initial_palette()
-	set_tint_palette(0.3)
+	pal:grab()
 end
 
 
 function BDR(scanline)
-	restore_palette()
+	pal:restore()
 
 	local Y0 = 8*GROUND_Y
 	local depth = cam.y-Y0 + scanline-4
 
-	set_dirt_colors(unpack(
-	  LAYER_COLORS:at(depth) or {}))
+	pal.apply_changes(LAYER_COLORS:at(depth))
 
-	set_tint_palette(
+	pal.apply_tint(
 	  clamp(1 - depth/350, 0, 1))
 
-	set_tint_palette(
+	pal.apply_tint(
 	  clamp(1 - 0.9*((scanline-70) / 70)^4, 0, 1))
-
-	-- uncomment to vis. tile row bounds.
-	--[[
-	if depth >= 0 and depth//1%8 == 0 then
-		dim_all_colors(t // 2 % 2 * 1.0)
-	end
-	]]
 
 	local flick = 0.15 * ((t+scanline)%2)
 
 	-- top border
 	if scanline < 4 then
 		local mul = 1-(.7-flick)*(scanline)/3
-		set_tint_palette(mul)
+		pal.apply_tint(mul)
 	-- tinted HUD backdrop with flickering
 	elseif scanline >= 4 and
 	       scanline < 14 then
 		local mul=0.2+flick
-		set_tint_palette(mul)
+		pal.apply_tint(mul)
 	-- HUD bottom transparency falloff
 	elseif scanline >= 14 and
 	       scanline <  17 then
 		local mul = 1-(.7-flick)
 		              *(17-scanline)/3
-		set_tint_palette(mul)
+		pal.apply_tint(mul)
 	-- below the HUD
 	elseif scanline == 17 then
-		set_tint_palette(1)
+		pal.apply_tint(1)
 	end
 end
 
 
 function TIC()
-	cam.move()
+	cam:move()
 
 	cls()
 
 	local tx,ty, sx,sy
 
 	-- sky/underground background
-	tx,ty, sx,sy = cam.parallax(0.5)
+	tx,ty, sx,sy = cam:parallax(0.5)
 	map(tx,ty, 32,19, sx,sy, -1, 1,
 	    function (_id, x, y)
 	    	if y+ty < GROUND_Y then
@@ -145,7 +137,7 @@ function TIC()
 	clip() -- I could use clip more!
 
 	-- sky landscape parallax
-	tx,ty, sx,sy = cam.parallax(0.1, 0.25)
+	tx,ty, sx,sy = cam:parallax(0.1, 0.25)
 	local rows = GROUND_Y - cam.y // 8
 	map(tx,ty, 34,rows, sx,sy, 0, 1,
 	    function(id, _x, _y)
@@ -154,10 +146,10 @@ function TIC()
 	    	end
 	    end)
 
-	tx,ty, sx,sy = cam.parallax(1)
+	tx,ty, sx,sy = cam:parallax(1)
 
 	-- grass sideways parallax
-	local gpx,_, gsx = cam.parallax(0.5)
+	local gpx,_, gsx = cam:parallax(0.5)
 	map(gpx,ty, 32,19, gsx,sy, 0, 1,
 	    function(_id, _x, y)
 	    	if y == GROUND_Y-1 then
@@ -267,7 +259,7 @@ end
 CAM_SPEED = 1.0
 cam = { x=0, y=0 }
 
-function cam.move()
+function cam:move()
 	local UP, DOWN, LEFT, RIGHT, A, B =
 	  0, 1, 2, 3, 4, 5
 
@@ -279,15 +271,15 @@ function cam.move()
 		btoi(btn(RIGHT)) - btoi(btn(LEFT)),
 		btoi(btn(DOWN))  - btoi(btn(UP))
 
-	cam.x, cam.y =
-		clamp(cam.x + speed * dx, 0, 239),
-		clamp(cam.y + speed * dy, 0, 272)
+	self.x, self.y =
+		clamp(self.x + speed * dx, 0, 239),
+		clamp(self.y + speed * dy, 0, 272)
 end
 
 -- Compute parallaxed map() parameters
-function cam.parallax(x_mul, y_mul)
+function cam.parallax(pos, x_mul, y_mul)
 	y_mul = y_mul or x_mul
-	local x,y = x_mul*cam.x, y_mul*cam.y
+	local x,y = x_mul*pos.x, y_mul*pos.y
 	return x//8,y//8, -(x%8),-(y%8)
 end
 
@@ -296,25 +288,21 @@ end
 N_PALS = 10
 PAL    = 0x3FC0
 
-saved_pal = {}
+pal = {}
 
--- read PALETTE memory into saved_pal
-function copy_initial_palette()
+function pal:grab()
 	for byte=0, 3*N_PALS - 1 do
-		saved_pal[byte] = peek(PAL + byte)
+		self[byte] = peek(PAL + byte)
 	end
 end
 
--- write saved_pal to PALETTE memory
-function restore_palette()
+function pal:restore()
 	for byte=0, 3*N_PALS - 1 do
-		poke(PAL + byte, saved_pal[byte])
+		poke(PAL + byte, self[byte])
 	end
 end
 
--- mix color 0 to the next 9 colors
--- in the palette by a given factor
-function set_tint_palette(mul)
+function pal.apply_tint(mul)
 	for byte=0, 3*N_PALS - 1 do
 		poke(PAL + byte,
 		     lerp(peek(PAL + byte % 3),
@@ -323,23 +311,21 @@ function set_tint_palette(mul)
 	end
 end
 
--- Darken all palette colors
-function dim_all_colors(mul)
+function pal.apply_dim(mul)
 	for byte=0, 3*N_PALS - 1 do
 		poke(PAL+byte, peek(PAL+byte)* mul)
 	end
 end
 
--- Set or reset colors 1 and 2
-function set_dirt_colors(d1, d2)
-	d1 = d1 or {unpack(saved_pal, 3, 5)}
-	d2 = d2 or {unpack(saved_pal, 6, 8)}
-
-	local bs = {nil, nil, unpack(d1)}
-	bs[6], bs[7], bs[8] = unpack(d2)
-
-	for b=3,8 do poke(PAL+b, bs[b]) end
+function pal.apply_changes(color_changes)
+	for idx, rgb in pairs(color_changes) do
+		local r, g, b = unpack(rgb)
+		poke(PAL + 3*idx    , r)
+		poke(PAL + 3*idx + 1, g)
+		poke(PAL + 3*idx + 2, b)
+	end
 end
+
 
 --------------------------------------
 -- utils
