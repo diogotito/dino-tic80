@@ -147,11 +147,13 @@ function TIC()
 	-- more grass! downards! rotated!
 	map(tx,ty, 31,18, sx,sy, {0,15}, 1,
 	    function (id, x, y)
-			if y == GROUND_Y and
-			   mget(x, y-1) == TILE_GRASS then
-				return TILE_GRASS, 0, 2
-			end
-		end)
+	    	local above = mget(x, y-1)
+	    	if y == GROUND_Y and (
+	    	   above == TILE_GRASS or
+	    	   fget(above, FLAG_BUILDG)) then
+	    		return TILE_GRASS, 0, 2
+	    	end
+	    end)
 
 	draw_hud(tx, ty, t)
 
