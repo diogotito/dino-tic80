@@ -9,7 +9,7 @@
 include "Vector2"
 
 function TIC()
-    cls(14)
-    local vec = v2(10) + v2(100, 0)
-    print("hi", vec.x, vec.y)
+    cls(7)
+    local vec = v2(10) + v2(100)
+    print("hi", vec.x, vec.y, 5)
 end

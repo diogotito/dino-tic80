@@ -2,6 +2,10 @@
   "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
   "runtime.version": "Lua 5.3",
   "format.enable": false,
-  "workspace.library": [".vscode"],
+  "workspace.library": [".vscode", "carts/lua"],
+  "workspace.ignoreDir": ["build.lua", ".local"],
+  "runtime.special": {
+    "include": "require"
+  },
   "diagnostics.disable": ["lowercase-global"]
 }

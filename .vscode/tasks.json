@@ -3,8 +3,7 @@
     "version": "2.0.0",
 
     "tasks": [
-        {
-            "label": "Launch TIC-80",
+        { "label": "Launch TIC-80",
             "detail": "with a predefined sequence of commands run on boot",
             "icon": {"color": "terminal.ansiCyan", "id": "server"},
             "type": "process",
@@ -36,8 +35,7 @@
             }
         },
 
-        {
-            "label": "RUN cart on TIC-80",
+        { "label": "RUN cart on TIC-80",
             "detail": "Immediately run the opened TIC-80 cart",
             "icon": {"color": "terminal.ansiBlue", "id": "game"},
             "type": "process",
@@ -64,7 +62,42 @@
                 "kind": "build",
                 "isDefault": true
             }
-        }
+        },
+
+        {
+            "label": "TQ-Bundler",
+            "detail": "Work on carts/lua/main.lua with TQ-Bundler",
+            "icon": { "color": "terminal.ansiBlue", "id": "eye-watch" },
+            "type": "process",
+            "options": { "cwd": "${workspaceFolder}/carts" },
+            "command": "${workspaceFolder}/bin/tq-bundler",
+            "windows": { "command": "${workspaceFolder}\\bin\\tq-bundler.exe" },
+            "args": [
+                "run",                      // Bundle and launch your game
+                "dinolode.lua",             //   <GAME> The TIC game file, containing sounds and sprites, but no code
+                "lua/main.lua",             //   <CODE> The "main" code file that will be injected inside the game
+                "--tic", "../bin/tic80.exe" // Will launch TIC-80 in watch mode with the game loaded
+            ],
+            "isBackground": true,
+            "runOptions": {
+                "instanceLimit": 1,
+                "instancePolicy": "warn"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false,
+                "close": false,
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "none",
+                "isDefault": false
+            },
+        },
     ],
 
     "inputs": [

@@ -4,9 +4,19 @@
         "lowercase-global"
     ],
     "Lua.workspace.library": [
-        ".vscode/tic80.lua"
+        ".vscode",
+        "carts/lua",
     ],
+    "Lua.workspace.ignoreDir": [
+        "build.lua",
+        ".local",
+    ],
+    "Lua.runtime.special": {
+        "include": "require"
+    },
     "[lua]": {
-        // "editor.tabSize": 1, "editor.rulers": [ 39, 59, 80, ],
+        // Display code like the TIC-80 CODE EDITOR
+        // "editor.tabSize": 1,
+        // "editor.rulers": [ 39, 59, 80, ],
     },
 }

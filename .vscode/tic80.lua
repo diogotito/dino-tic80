@@ -1,3 +1,5 @@
+---@meta
+
 --TIC-80 Syntax from https://github.com/nesbox/TIC-80/wiki/
 --This code is obtainable in https://github.com/hayattgd/TIC-80-syntax/
 
