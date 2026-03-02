@@ -1,5 +1,8 @@
 # dino-tic80
 
+<img align="right" width="240" height="136" alt="dinoscene smol" src="https://github.com/user-attachments/assets/e3ce4e95-8b57-4b87-9d9d-4b60ca16fabc">
+<!--![dinoscene-smol](https://github.com/user-attachments/assets/99d2223a-3070-4616-b932-84ed3811178a)-->
+
 A TIC-80 game for a monthly game jam with theme "Dinossaurs".
 
 <table>
@@ -12,7 +15,7 @@ A TIC-80 game for a monthly game jam with theme "Dinossaurs".
 
 
 ## Development
-
+  
 To clone this repo for working from TIC-80:
 
 1. Launch a fresh instance of tic80
