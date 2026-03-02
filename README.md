@@ -1,9 +1,10 @@
 # dino-tic80
 
-<img align="right" width="240" height="136" alt="dinoscene smol" src="https://github.com/user-attachments/assets/e3ce4e95-8b57-4b87-9d9d-4b60ca16fabc">
-<!--![dinoscene-smol](https://github.com/user-attachments/assets/99d2223a-3070-4616-b932-84ed3811178a)-->
-
-A TIC-80 game for a monthly game jam with theme "Dinossaurs".
+<details>
+  <summary>A TIC-80 game for a monthly game jam with theme "Dinossaurs".</summary>
+  <img align="right" width="240" height="136" alt="dinoscene smol" src="https://github.com/user-attachments/assets/e3ce4e95-8b57-4b87-9d9d-4b60ca16fabc">
+  <!--![dinoscene-smol-2x](https://github.com/user-attachments/assets/99d2223a-3070-4616-b932-84ed3811178a)-->
+</details>
 
 <table>
   <tr>
@@ -14,26 +15,16 @@ A TIC-80 game for a monthly game jam with theme "Dinossaurs".
 </table>
 
 
-## Development
-  
-To clone this repo for working from TIC-80:
+## Development with TQ-Bundler in VS Code
 
-1. Launch a fresh instance of tic80
-1. From the new console, run `folder`
-1. `git clone` this repo into whatever folder that opened up
+1. `code .`
+   
+1. <kbd>Ctrl</kbd><kbd>P</kbd> `ext install sumneko.lua`  
+   to install the [Lua](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) extension, if you haven't already
+   
+1. <kbd>Ctrl</kbd><kbd>P</kbd> `task` <kbd>SPACE</kbd> TQ-Bundler  
+   to should launch TIC-80 running the bundled cart.
 
-From here on, to edit/run this project after booting TIC-80:
+All code is inside `carts/lua/`
 
-1. `cd dino-tic80`
-1. `load dinoscene.lua`
-
-> [!CAUTION]
-> TIC-80 **doesn't autosave!!**
-> Don't forget to save often with <kbd>Ctrl</kbd> <kbd>S</kbd>
-> or `> save` on the console.
-
-
-### Some handy shortcuts
-
-* <kbd>Ctrl</kbd> <kbd>R</kbd> or <kbd>Ctrl</kbd> <kbd>Enter</kbd> runs the thing.
-* <kbd>Esc</kbd> alternates between the CODE EDITOR and the console.
+* `main.lua` is the entrypoint
