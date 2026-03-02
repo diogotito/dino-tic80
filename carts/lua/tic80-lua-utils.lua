@@ -104,18 +104,25 @@ end
 
 ---Print out the full structure of a table in the TIC-80 console screen,
 ---with [trace](lua://trace), to aid debugging.
----@param t any # The table to debug
-function dump_tbl(t, i)
+---@param t table # The table to debug
+function dump_tbl(t)
+	trace(fmt_tbl(t))
+end
+
+---Builds a "pretty-printed" representation of a table, to aid debugging.
+---@param t table # The table to pretty-print
+---@return string # A nice representation that can be dumped to the console with [trace](lua://trace)
+function fmt_tbl(t, i)
 	i = i or 0
 	local out = {tostring(t)}
 	for k,v in pairs(t) do
 		out[#out+1] = ("[%s]=%s"):format(
 				k,
 				(type(v)=="table")
-					and dump_tbl(v, i+1)
+					and fmt_tbl(v, i+1)
 					or v)
 	end
 	local indent = string.rep(" ", i)
-	trace(indent ..
-			table.concat(out, "\n "..indent))
+	return indent ..
+			table.concat(out, "\n "..indent)
 end
