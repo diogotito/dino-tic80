@@ -46,6 +46,7 @@ end
 -- quick maths
 sin, cos, atan = math.sin, math.cos, math.atan
 random, randomseed = math.random, math.randomseed
+PI, TAU = math.pi, 2*math.pi
 
 unpack = table.unpack -- I just like to use `table.unpack` a lot
 
