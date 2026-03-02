@@ -9,6 +9,7 @@
     ],
     "Lua.workspace.ignoreDir": [
         "build.lua",
+        "carts/lua/build.lua",
         ".local",
     ],
     "Lua.runtime.special": {

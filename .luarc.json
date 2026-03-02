@@ -3,7 +3,7 @@
   "runtime.version": "Lua 5.3",
   "format.enable": false,
   "workspace.library": [".vscode", "carts/lua"],
-  "workspace.ignoreDir": ["build.lua", ".local"],
+  "workspace.ignoreDir": ["build.lua", "carts/lua/build.lua", ".local"],
   "runtime.special": {
     "include": "require"
   },
