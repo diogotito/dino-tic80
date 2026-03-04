@@ -23,6 +23,18 @@ function tset(x, y, id)
     mset(mx + 1, my + 1, id + 0x11)
 end
 
+function place_dino(x,y,init_id,w,h)
+    w = w or 1
+    h = h or 1
+    id = init_id
+    for i = 0, w-1, 1 do
+        for j = 0, h-1, 1 do
+            id = init_id+i*2+j*32
+            tset(x+i,y+j,id)
+        end
+    end
+end
+
 
 function terrain_generate()
     grid = create_empty_grid(TERRAIN_WIDTH, TERRAIN_HEIGHT)
@@ -36,4 +48,7 @@ function terrain_generate()
         local x, y = math.random(1, 9), math.random(1, 5)
         tset(x, y, TILE_DINO_SMOL_1)
     end
+    -- pterosaur
+    place_dino(20,8,TILE_PTEROSAUR,2,2)
+    place_dino(10,6,TILE_STEGOSAURUS,2,2)
 end
