@@ -21,6 +21,7 @@ player={
     jump_v = 0,
     -- jump_spd = 5
     airtime =0,
+    flip = 0,
 }
 
 
@@ -45,7 +46,6 @@ function TIC()
     end
 
 	if btn(BTN_UP) then
-        print("yay jumpy")
         player.jumped = true
 	end
 	-- if btn(BTN_DOWN) and not is_colliding_ground(player.pos) then
@@ -53,16 +53,18 @@ function TIC()
 	-- end
 	if btn(BTN_LEFT) then
 		player.pos.x = player.pos.x-1
+        player.flip = 1
 	end
 	if btn(BTN_RIGHT) then
 		player.pos.x = player.pos.x+1
+        player.flip = 0
 	end
 	
 
 	cls(0)
     map(0,0,30,17,0,0,0,1)
 
-    print(player.jumped, 3)
+    -- print(player.flip, 3)
     if is_colliding_ground(player.pos) then
         player.airtime = 0
     else
@@ -73,7 +75,7 @@ function TIC()
 
     -- print(("footpos: %02d,%02d"):format(player.pos.x+8,player.pos.y+16))
     -- print(("pos: %02d,%02d, down_tile:%02d, flag=0=%s"):format((player.pos.x+8)//8,(player.pos.y+16)//8,down_tile,fget(down_tile, 0)),4)
-    spr(262,player.pos.x,player.pos.y,0,1,0,0,2,2)
+    spr(262,player.pos.x,player.pos.y,0,1,player.flip,0,2,2)
 	-- hxw 30 x 17, +1 each side 
 	-- map(x//8,y//8,31,18,-(x%8),-(y%8),0,1)
     
