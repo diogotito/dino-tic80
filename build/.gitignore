@@ -1,0 +1,4 @@
+# LuaLS should be configured to ignore this directory
+# TQ-Bundler output should go here
+
+*

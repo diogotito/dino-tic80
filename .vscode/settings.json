@@ -12,6 +12,8 @@
         "build.lua",
         "carts/lua/build.lua",
         ".local",
+        "build",
+        "build/build.lua",
     ],
     "Lua.runtime.special": {
         "include": "require"
