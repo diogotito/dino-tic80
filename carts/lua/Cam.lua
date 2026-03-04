@@ -10,6 +10,7 @@ function Cam:look_at(world_x, world_y)
     self.x, self.y =
         world_x - SCREEN_WIDTH/2,
         world_y - SCREEN_HEIGHT/2
+    return self
 end
 
 
@@ -70,8 +71,8 @@ Cam.move_speed = 1.0
 Cam.move_bounds = {
     left   = 0,
     top    = 0,
-    right  = SCREEN_WIDTH - 1,
-    bottom = SCREEN_HEIGHT - 1,
+    right  = 16*TERRAIN_WIDTH - SCREEN_HEIGHT,
+    bottom = 16*TERRAIN_HEIGHT - SCREEN_HEIGHT,
 }
 
 ---Update `x` and `y` coordinates with directional input,
@@ -81,13 +82,18 @@ function Cam:move_with_input()
 	  * (btn(BTN_A) and 2.0 or 1) -- faster
 	  * (btn(BTN_B) and 0.5 or 1) -- slower
 
-    local bounds = self.move_bounds
-    
 	local dx, dy =
 		btoi(btn(BTN_RIGHT)) - btoi(btn(BTN_LEFT)),
 		btoi(btn(BTN_DOWN))  - btoi(btn(BTN_UP))
 
-	self.x, self.y =
-		clamp(self.x + speed * dx, bounds.left, bounds.right),
-		clamp(self.y + speed * dy, bounds.top, bounds.bottom)
+    self.x, self.y = self.x + speed*dx, self.y + speed*dy
+	self:enforce_bounds()
+end
+
+function Cam:enforce_bounds(bounds)
+    bounds = bounds or self.move_bounds
+    self.x, self.y =
+		clamp(self.x, bounds.left, bounds.right),
+		clamp(self.y, bounds.top, bounds.bottom)
+    return self
 end
