@@ -4,10 +4,10 @@
 -- Constants
 -------------------------------------------------------
 
-SW = 240    --- Screen width, in pixels
-SH = 136    --- Screen height, in pixels
-TW = 30     --- Screen width, in tiles
-TH = 17     --- Screen height, in tiles
+SCREEN_WIDTH = 240    --- Screen width, in pixels
+SCREEN_HEIGHT = 136   --- Screen height, in pixels
+ROOM_WIDTH = 30       --- Screen width, in tiles
+ROOM_HEIGHT = 17      --- Screen height, in tiles
 
 RAM_PAL = 0x3FC0 --- Palette RAM address
 

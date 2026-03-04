@@ -8,8 +8,8 @@ Cam = { x=0, y=0 }
 ---@param world_y number # y coordinate in world pixels space
 function Cam:look_at(world_x, world_y)
     self.x, self.y =
-        world_x - SW/2,
-        world_y - SH/2
+        world_x - SCREEN_WIDTH/2,
+        world_y - SCREEN_HEIGHT/2
 end
 
 
@@ -70,8 +70,8 @@ Cam.move_speed = 1.0
 Cam.move_bounds = {
     left   = 0,
     top    = 0,
-    right  = SW - 1,
-    bottom = SH - 1,
+    right  = SCREEN_WIDTH - 1,
+    bottom = SCREEN_HEIGHT - 1,
 }
 
 ---Update `x` and `y` coordinates with directional input,
