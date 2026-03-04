@@ -229,6 +229,8 @@ TERRAIN_HEIGHT = ROOM_HEIGHT*2
 TILE_DIRT_1 = 32
 TILE_DIRT_2 = 34
 TILE_DINO_SMOL_1 = 38
+TILE_PTEROSAUR = 204
+TILE_STEGOSAURUS = 200
 
 -- Flags
 
@@ -263,6 +265,18 @@ function tset(x, y, id)
     mset(mx + 1, my + 1, id + 0x11)
 end
 
+function place_dino(x,y,init_id,w,h)
+    w = w or 1
+    h = h or 1
+    id = init_id
+    for i = 0, w-1, 1 do
+        for j = 0, h-1, 1 do
+            id = init_id+i*2+j*32
+            tset(x+i,y+j,id)
+        end
+    end
+end
+
 
 function terrain_generate()
     grid = create_empty_grid(TERRAIN_WIDTH, TERRAIN_HEIGHT)
@@ -276,9 +290,110 @@ function terrain_generate()
         local x, y = math.random(1, 9), math.random(1, 5)
         tset(x, y, TILE_DINO_SMOL_1)
     end
+    -- pterosaur
+    place_dino(20,8,TILE_PTEROSAUR,2,2)
+    place_dino(10,6,TILE_STEGOSAURUS,2,2)
 end
 
 -- [/TQ-Bundler: terrain_grid]
+
+-- [TQ-Bundler: player]
+
+GRAVITY = 1
+JUMP_SPEED = 2
+MOVE_SPEED = 1
+player={
+    pos = {x=0,y=0},
+    dir = {x=0,y=0},
+    hitbox = {x=1,y=3,w=6,h=5},
+    jumped = false,
+    max_jump_h = 4,
+    -- max_jump = 10, --
+    jump_v = 0,
+    -- jump_spd = 5
+    airtime =0,
+    flip = 0,
+}
+
+
+local delta, last = 0, time()
+jump_duration = 4
+
+
+function player.update(player)
+    -- cls(7)
+    -- local vec = v2(10) + v2(100)
+    -- print("hi", vec.x, vec.y, 5)\
+
+    local now = time()
+    delta = now - last
+    last = now
+
+    -- trace(delta)
+    if player.jumped then
+        player.pos.y = player.pos.y - JUMP_SPEED
+        if is_colliding_ground(player.pos) then
+            player.jumped = false
+        end
+    end
+
+    local speed = MOVE_SPEED
+	  * (btn(BTN_A) and 2.0 or 1) -- faster
+	  * (btn(BTN_B) and 0.5 or 1) -- slower
+
+	if btn(BTN_UP) then
+        player.jumped = true
+	end
+	-- if btn(BTN_DOWN) and not is_colliding_ground(player.pos) then
+	-- 	player.pos.y = player.pos.y+1
+	-- end
+	if btn(BTN_LEFT) then
+		player.pos.x = player.pos.x - speed
+        player.flip = 1
+	end
+	if btn(BTN_RIGHT) then
+		player.pos.x = player.pos.x + speed
+        player.flip = 0
+	end
+    if is_colliding_ground(player.pos) then
+        player.airtime = 0
+    else
+        player.airtime = player.airtime+delta
+        player.pos.y = player.pos.y + GRAVITY * (player.airtime * 0.005)
+    end
+    -- "mget=",down_tile," flag=0", fget(down_tile, 0)
+end
+
+function player.draw(player)
+    -- print(player.flip, 3)
+
+    -- print(("footpos: %02d,%02d"):format(player.pos.x+8,player.pos.y+16))
+    -- print(("pos: %02d,%02d, down_tile:%02d, flag=0=%s"):format((player.pos.x+8)//8,(player.pos.y+16)//8,down_tile,fget(down_tile, 0)),4)
+    local sx, sy = Cam:world_to_screen(player.pos.x, player.pos.y)
+    spr(262, sx, sy, 0, 1, player.flip, 0, 2, 2)
+	-- hxw 30 x 17, +1 each side 
+	-- map(x//8,y//8,31,18,-(x%8),-(y%8),0,1)
+
+end
+
+function is_colliding_ground(pos)
+    -- check for ground
+    down_tile = mget((pos.x+8)//8,(pos.y+16)//8)
+    return fget(down_tile, F_COL)
+
+end
+
+-- function handle_sprite()
+
+-- end
+-- function is_colliding_sides()
+--     -- check for directional
+-- end
+
+
+
+
+-- [/TQ-Bundler: player]
 
 -- [TQ-Bundler: Cam]
 
@@ -294,6 +409,7 @@ function Cam:look_at(world_x, world_y)
     self.x, self.y =
         world_x - SCREEN_WIDTH/2,
         world_y - SCREEN_HEIGHT/2
+    return self
 end
 
 
@@ -354,8 +470,8 @@ Cam.move_speed = 1.0
 Cam.move_bounds = {
     left   = 0,
     top    = 0,
-    right  = SCREEN_WIDTH - 1,
-    bottom = SCREEN_HEIGHT - 1,
+    right  = 16*TERRAIN_WIDTH - SCREEN_HEIGHT,
+    bottom = 16*TERRAIN_HEIGHT - SCREEN_HEIGHT,
 }
 
 ---Update `x` and `y` coordinates with directional input,
@@ -365,16 +481,22 @@ function Cam:move_with_input()
 	  * (btn(BTN_A) and 2.0 or 1) -- faster
 	  * (btn(BTN_B) and 0.5 or 1) -- slower
 
-    local bounds = self.move_bounds
-    
 	local dx, dy =
 		btoi(btn(BTN_RIGHT)) - btoi(btn(BTN_LEFT)),
 		btoi(btn(BTN_DOWN))  - btoi(btn(BTN_UP))
 
-	self.x, self.y =
-		clamp(self.x + speed * dx, bounds.left, bounds.right),
-		clamp(self.y + speed * dy, bounds.top, bounds.bottom)
+    self.x, self.y = self.x + speed*dx, self.y + speed*dy
+	self:enforce_bounds()
 end
+
+function Cam:enforce_bounds(bounds)
+    bounds = bounds or self.move_bounds
+    self.x, self.y =
+		clamp(self.x, bounds.left, bounds.right),
+		clamp(self.y, bounds.top, bounds.bottom)
+    return self
+end
+
 
 -- [/TQ-Bundler: Cam]
 
@@ -384,11 +506,17 @@ end
 
 
 function TIC()
-    Cam:move_with_input()
+    player:update()
+    Cam:look_at(player.pos.x, player.pos.y):enforce_bounds()
+
     local x, y, sx, sy = Cam:map_params()
 
     cls()
     map(x, y, ROOM_WIDTH + 1, ROOM_HEIGHT + 1, sx, sy)
+    player:draw()
+    print(("Cam @ (%5.2f, %5.2f)"):format(Cam.x, Cam.y), 10, 10)
+    print(("x,y = (%5.2f, %5.2f)"):format(x, y), 10, 20)
+    print(("sxy = (%5.2f, %5.2f)"):format(sx, sy), 10, 30)
 end
 
 -- <TILES>
@@ -590,10 +718,14 @@ end
 -- 002:55555000ca55550055555550000c0c0000000000000000000000000055555500
 -- 003:0000005500005555000055550005555300055553000555330005553300055555
 -- 004:55555000ca5555005555555033333000cb3cb000333333003333300055555500
+-- 006:0000bbbb00bbbbbb0bb00b0b0b000b0bbb999990b09000900099999000000000
+-- 007:bb000b00bbbbbbbbb00b000bb99990000900900009999000000c000000c00000
 -- 017:5000575550005577550555557555555507555555007755550000755000007755
 -- 018:5555500077770000555500005555000055550000555550000075500000775500
 -- 019:5000575550005577550555557555555507555555007755550000755000007755
 -- 020:5555500077770000555500005555000055550000555550000075500000775500
+-- 022:0000cc0000000ccc000000cc000ccccc00000c0c0000cc000000c00000000000
+-- 023:ccc00000c000000000000000cccc000000000000c0000000cc00000000000000
 -- </SPRITES>
 
 -- <MAP>
@@ -654,6 +786,10 @@ end
 -- <TRACKS>
 -- 000:104000144020144120000000000000000000000000000000000000000000000000000000000000000000000000000000ec0000
 -- </TRACKS>
+
+-- <FLAGS>
+-- 000:00000000000000000000000000000000000000000000000000101010101010101010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000000000000000000000000000000000000101010100000000000000000000000001010101000000000000000000000000010101010000000000000000000000000101010100000101010101010101010100000000000000000000000000000000010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+-- </FLAGS>
 
 -- <PALETTE>
 -- 000:1a1c2c818195a5a5b6c6c6d200badea7f07038b764257179852848b23c55694848593838ffe2ceaa754d9d6148855040
