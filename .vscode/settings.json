@@ -3,6 +3,7 @@
     "Lua.diagnostics.disable": [
         "lowercase-global"
     ],
+    "Lua.diagnostics.ignoredFiles": "Disable",
     "Lua.workspace.library": [
         ".vscode",
         "carts/lua",

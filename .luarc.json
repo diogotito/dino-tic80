@@ -7,5 +7,6 @@
   "runtime.special": {
     "include": "require"
   },
-  "diagnostics.disable": ["lowercase-global"]
+  "diagnostics.disable": ["lowercase-global"],
+  "diagnostics.ignoredFiles": "Disable"
 }
